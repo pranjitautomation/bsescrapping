@@ -44,9 +44,9 @@ def fetch_friday_closing_price():
         print(f"No trading data available for today, {friday_date}")
 
 def send_email(file_path):
-    sender_email = 'pranjit.automation@gmail.com'
-    receiver_email = 'pranjitchowdhury10@gmail.com'
-    password = 'llrr kwrf qhrz uwhk'
+    sender_email = os.getenv('SENDER_EMAIL')
+    receiver_email = os.getenv('RECEIVER_EMAIL')
+    password = os.getenv('EMAIL_PASSWORD')
     subject = 'SBI Friday Closing Prices'
     body = 'Please find attached the latest SBI Friday closing prices.'
 
