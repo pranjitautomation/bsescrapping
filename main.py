@@ -1,16 +1,17 @@
 import yfinance as yf
 import pandas as pd
-from datetime import datetime
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
+from openpyxl import load_workbook
 import os
 
 curr_dir = os.getcwd()
-EXCEL_FILE = os.path.join(curr_dir, 'sbi_friday_closing_prices.xlsx')
+EXCEL_FILE = os.path.join(curr_dir, 'State Bank of India.xlsx')
 
+SHEET_NAME = 'Sheet1'
 def fetch_friday_closing_price():
     ticker_symbol = 'SBIN.BO'
     sbi_data = yf.Ticker(ticker_symbol)
@@ -20,24 +21,28 @@ def fetch_friday_closing_price():
     if not fridays.empty:
         friday_date = fridays.index[0].date()
         friday_close = fridays['Close'].iloc[0]
-        today = datetime.now().date()
-
-        # Check if the Excel file exists and read the data
+        
         if os.path.exists(EXCEL_FILE):
-            df = pd.read_excel(EXCEL_FILE)
+            book = load_workbook(EXCEL_FILE)
+            if SHEET_NAME in book.sheetnames:
+                df = pd.read_excel(EXCEL_FILE, sheet_name=SHEET_NAME)
+                df['DATE'] = pd.to_datetime(df['DATE']).dt.date
+            else:
+                df = pd.DataFrame(columns=['DATE', 'WEEKLY'])
         else:
-            df = pd.DataFrame(columns=['Date', 'Close'])
-        print(df.columns)
-        # Convert 'Date' column to datetime to avoid issues with date comparison
-        df['Date'] = pd.to_datetime(df['Date']).dt.date
+            df = pd.DataFrame(columns=['DATE', 'WEEKLY'])
 
-        # Check if today's date is already in the data
-        if friday_date in df['Date'].values:
+        if friday_date in df['DATE'].values:
             print(f"Data for {friday_date} is already present. Skipping appending.")
         else:
-            new_row = pd.DataFrame({'Date': [friday_date], 'Close': [friday_close]})
+            new_row = pd.DataFrame({'DATE': [friday_date], 'WEEKLY': [friday_close]})
             df = pd.concat([df, new_row], ignore_index=True)
-            df.to_excel(EXCEL_FILE, index=False)
+            with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl') as writer:
+                writer.book = book
+                df.to_excel(writer, sheet_name=SHEET_NAME, index=False)
+                
+            book.save(EXCEL_FILE)
+            book.close() 
             print(f"Appended data: {friday_date} - {friday_close}")
             send_email(EXCEL_FILE)
     else:
@@ -49,7 +54,6 @@ def send_email(file_path):
     password = os.getenv('EMAIL_PASSWORD')
     subject = 'SBI Friday Closing Prices'
     body = 'Please find attached the latest SBI Friday closing prices.'
-
     msg = MIMEMultipart()
     msg['From'] = sender_email
     msg['To'] = receiver_email
