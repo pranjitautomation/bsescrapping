@@ -37,12 +37,11 @@ def fetch_friday_closing_price():
         else:
             new_row = pd.DataFrame({'DATE': [friday_date], 'WEEKLY': [friday_close]})
             df = pd.concat([df, new_row], ignore_index=True)
-            with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl') as writer:
-                writer.book = book
+            with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
                 df.to_excel(writer, sheet_name=SHEET_NAME, index=False)
                 
-            book.save(EXCEL_FILE)
-            book.close() 
+            # book.save(EXCEL_FILE)
+            # book.close() 
             print(f"Appended data: {friday_date} - {friday_close}")
             send_email(EXCEL_FILE)
     else:
