@@ -7,6 +7,8 @@ from email.mime.text import MIMEText
 from email import encoders
 from openpyxl import load_workbook
 import os
+import sys
+
 
 curr_dir = os.getcwd()
 EXCEL_FILE = os.path.join(curr_dir, 'State Bank of India.xlsx')
@@ -43,9 +45,14 @@ def fetch_friday_closing_price():
             # book.save(EXCEL_FILE)
             # book.close() 
             print(f"Appended data: {friday_date} - {friday_close}")
-            send_email(EXCEL_FILE)
+            if send_email(EXCEL_FILE):
+                sys.exit(0)
+            else:
+                sys.exit(1)
     else:
         print(f"No trading data available for today, {friday_date}")
+        sys.exit(1)
+        
 
 def send_email(file_path):
     sender_email = os.getenv('SENDER_EMAIL')
@@ -75,8 +82,10 @@ def send_email(file_path):
         server.sendmail(sender_email, receiver_email, text)
         server.quit()
         print('Email sent successfully!')
+        return True
     except Exception as e:
         print(f'Failed to send email: {e}')
+        return False
 
 fetch_friday_closing_price()
 print("Task is done.")

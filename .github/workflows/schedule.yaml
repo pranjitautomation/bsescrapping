@@ -33,8 +33,9 @@ jobs:
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git pull origin main
         git add "State Bank of India.xlsx"
         git commit -m 'Update Excel file with latest prices'
-        git push
+        git push origin main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
