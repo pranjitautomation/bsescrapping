@@ -36,6 +36,7 @@ def fetch_friday_closing_price():
 
         if friday_date in df['DATE'].values:
             print(f"Data for {friday_date} is already present. Skipping appending.")
+            sys.exit(1)
         else:
             new_row = pd.DataFrame({'DATE': [friday_date], 'WEEKLY': [friday_close]})
             df = pd.concat([df, new_row], ignore_index=True)
@@ -86,7 +87,8 @@ def send_email(file_path):
     except Exception as e:
         print(f'Failed to send email: {e}')
         return False
-
+    
+    
 fetch_friday_closing_price()
 print("Task is done.")
 
