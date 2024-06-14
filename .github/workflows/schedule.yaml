@@ -29,13 +29,34 @@ jobs:
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
       run: python main.py  # Replace 'your_script.py' with your script's name
     
-    - name: Commit changes
+    # - name: Commit changes
+    #   run: |
+    #     git config --global user.name 'github-actions[bot]'
+    #     git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+    #     git pull origin main
+    #     git add "State Bank of India.xlsx"
+    #     git commit -m 'Update Excel file with latest prices'
+    #     git push origin main
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Check for changes
+      id: check_changes
+      run: |
+        git add "State Bank of India.xlsx"
+        git diff-index --quiet HEAD || echo "Changes detected"
+        echo "::set-output name=changes::$(git diff-index --quiet HEAD || echo 'true')"
+
+    - name: Commit and push changes
+      if: steps.check_changes.outputs.changes == 'true'
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git pull origin main
-        git add "State Bank of India.xlsx"
         git commit -m 'Update Excel file with latest prices'
         git push origin main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: No changes to commit
+      if: steps.check_changes.outputs.changes != 'true'
+      run: echo "No changes to commit."
