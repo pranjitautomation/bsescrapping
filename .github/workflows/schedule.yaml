@@ -2,7 +2,7 @@ name: run main.py
 
 on:
   schedule:
-    - cron: '1/10 * * * *'  # Runs every day at midnight UTC
+    - cron: '30 11 * * 5'  # Every Friday at 11:30 AM UTC (5 PM IST)
 
 jobs:
   run-script:
